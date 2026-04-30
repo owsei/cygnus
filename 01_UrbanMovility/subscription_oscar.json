@@ -1,0 +1,201 @@
+{
+  "id": "690dbde520fd07705e07e8a7",
+  "description": "UrbanMobility:EXTERIOR:vehicle",
+  "status": "active",
+  "subject": {
+    "entities": [
+      {
+        "id": ".*",
+        "isPattern": true,
+        "type": "vehicle"
+      }
+    ],
+    "condition": {
+      "attrs": [
+        "TimeInstant"
+      ],
+      "notifyOnMetadataChange": true
+    }
+  },
+  "notification": {
+    "timesSent": 599,
+    "lastNotification": "2025-11-10T08:44:49.000Z",
+    "attrs": [
+      "TimeInstant",
+      "vehicleid",
+      "license_plate",
+      "location",
+      "timedata",
+      "current_stop_sequence",
+      "stop_id",
+      "route_id",
+      "trip_id",
+      "direction_id",
+      "occupancy_percentage"
+    ],
+    "onlyChangedAttrs": false,
+    "attrsFormat": "normalized",
+    "httpCustom": {
+      "url": "https://pamplona.host/5055",
+      "headers": {
+        "fiware-servicepath": "/urbanmobility"
+      }
+    },
+    "lastFailure": "2025-11-10T08:45:19.000Z",
+    "lastFailureReason": "Timeout was reached",
+    "lastSuccess": "2025-11-07T13:22:01.000Z",
+    "lastSuccessCode": 429,
+    "failsCounter": 237,
+    "covered": false
+  },
+  "extraInfo": 429
+}
+
+
+
+
+{
+  "id": "691703d320fd07705e07e8b1",
+  "description": "UrbanMobility:EXTERIOR_LASTDATA:vehicle",
+  "status": "active",
+  "subject": {
+    "entities": [
+      {
+        "id": ".*",
+        "isPattern": true,
+        "type": "vehicle"
+      }
+    ],
+    "condition": {
+      "attrs": [
+        "TimeInstant"
+      ],
+      "notifyOnMetadataChange": true
+    }
+  },
+  "notification": {
+    "attrs": [
+      "TimeInstant",
+      "vehicleid",
+      "license_plate",
+      "location",
+      "timedata",
+      "current_stop_sequence",
+      "stop_id",
+      "route_id",
+      "trip_id",
+      "direction_id",
+      "occupancy_percentage"
+    ],
+    "onlyChangedAttrs": false,
+    "attrsFormat": "normalized",
+    "httpCustom": {
+      "url": "https://pamplona.host/5056/notify",
+      "headers": {
+        "fiware-servicepath": "/urbanmobility"
+      }
+    },
+    "covered": false
+  }
+}
+
+
+
+
+{
+  "id": "691c47ba20fd07705e07e8b2",
+  "description": "Urbanmobility:TRACASA",
+  "status": "active",
+  "subject": {
+    "entities": [
+      {
+        "id": ".*",
+        "isPattern": true,
+        "type": "vehicle"
+      }
+    ],
+    "condition": {
+      "attrs": [
+        "TimeInstant"
+      ],
+      "notifyOnMetadataChange": true
+    }
+  },
+  "notification": {
+    "timesSent": 1058,
+    "lastNotification": "2025-11-20T09:00:13.000Z",
+    "attrs": [
+      "TimeInstant",
+      "vehicleid",
+      "license_plate",
+      "location",
+      "timedata",
+      "current_stop_sequence",
+      "stop_id",
+      "route_id",
+      "trip_id",
+      "direction_id",
+      "occupancy_percentage"
+    ],
+    "onlyChangedAttrs": false,
+    "attrsFormat": "normalized",
+    "httpCustom": {
+      "url": "http://10.244.129.92:80",
+      "headers": {
+        "fiware-servicepath": "/urbanmobility"
+      }
+    },
+    "lastFailure": "2025-11-20T09:00:57.000Z",
+    "lastFailureReason": "Timeout was reached",
+    "failsCounter": 112,
+    "covered": false
+  }
+}
+
+{
+  "id": "690d9e8920fd07705e07e8a6",
+  "description": "UrbanMobility:LASTDATA:vehicle",
+  "status": "active",
+  "subject": {
+    "entities": [
+      {
+        "id": ".*",
+        "isPattern": true,
+        "type": "vehicle"
+      }
+    ],
+    "condition": {
+      "attrs": [],
+      "notifyOnMetadataChange": true
+    }
+  },
+  "notification": {
+    "timesSent": 6406,
+    "lastNotification": "2025-11-20T09:23:43.000Z",
+    "attrs": [
+      "TimeInstant",
+      "vehicleid",
+      "license_plate",
+      "location",
+      "timedata",
+      "current_stop_sequence",
+      "stop_id",
+      "route_id",
+      "trip_id",
+      "direction_id",
+      "occupancy_percentage"
+    ],
+    "onlyChangedAttrs": false,
+    "attrsFormat": "normalized",
+    "httpCustom": {
+      "url": "http://pro-core-smc-cygnus:5088/notify",
+      "headers": {
+        "fiware-servicepath": "/urbanmobility"
+      }
+    },
+    "lastSuccess": "2025-11-20T09:24:31.000Z",
+    "lastSuccessCode": 200,
+    "covered": false
+  },
+  "extraInfo": 200
+}

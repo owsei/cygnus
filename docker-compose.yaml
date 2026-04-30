@@ -1,0 +1,165 @@
+services:
+  orion:
+    image: fiware/orion
+    container_name: orion
+    hostname: orion
+    ports:
+      - "1026:1026"
+    depends_on:
+      - mongo
+    command: 
+      -dbURI mongodb://mongo
+      -corsOrigin __ALL
+    networks:
+      - fiware-net
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    hostname: mongo
+    ports:
+      - "27017:27017"
+    # command: --nojournal
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fiware-net
+  
+  cygnus:
+    image: fiware/cygnus-ngsi
+    hostname: cygnus
+    container_name: cygnus
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile_cygnus
+    # depends_on:
+    #   - postgis
+    ports:
+      - "5051:5051"
+      - "5055:5055"
+      - "5056:5056"
+      - "5057:5057"
+      - "5080:5080" 
+    environment:
+      CYGNUS_SERVICE_PORT: 5055
+      CYGNUS_POSTGRESQL_SERVICE_PORT: 5055
+      # PostgreSQL config
+      CYGNUS_SKIP_CONF_GENERATION: 'true'
+      CYGNUS_LOG_LEVEL: INFO
+      CYGNUS_POSTGRESQL_HOST: timescale
+      CYGNUS_POSTGRESQL_PORT: 5432
+      CYGNUS_POSTGRESQL_DATABASE: pamplona
+      CYGNUS_POSTGRESQL_USER: admin
+      CYGNUS_POSTGRESQL_PASS: admin
+      CYGNUS_POSTGRESQL_SERVICE: timescale
+      CYGNUS_POSTGRESQL_DATA_MODEL: dm-by-entity-type #dm-by-entity-type-database #dm-by-entity-type-database #dm-by-entity-type-database
+      CYGNUS_POSTGRESQL_ATTR_PERSISTENCE: column
+      
+      # CYGNUS_MYSQL_HOST : mysql
+      # CYGNUS_MYSQL_DB : orion
+      # CYGNUS_MYSQL_PORT : 3306
+      # CYGNUS_MYSQL_USER : root
+      # CYGNUS_MYSQL_PASS : 6447
+      # CYGNUS_MYSQL_DATA_MODEL : dm-by-entity-type
+      # CYGNUS_MYSQL_ATTR_PERSISTENCE: column
+      # CYGNUS_MYSQL_SERVICE_PORT : 5050
+    volumes:
+      - ./cygnus/agent.conf:/opt/apache-flume/conf/agent.conf
+
+    networks:
+      - fiware-net
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8088:80"
+    # depends_on:
+      # - timescale
+    # volumes:
+    #   - ./pgadmin_data:/var/lib/pgadmin
+    networks:
+      - fiware-net
+
+  iot-agent-json:
+    image: fiware/iotagent-json
+    hostname: iot-agent-json
+    container_name: iot-agent-json
+    restart: always
+    depends_on:
+      - mongo
+    environment:
+      IOTA_CB_HOST : orion
+      IOTA_CB_PORT : 1026
+      IOTA_NORTH_PORT: 4041
+      IOTA_REGISTRY_TYPE: mongodb
+      IOTA_LOG_LEVEL: DEBUG
+      # IOTA_TIMESTAMP: true
+      IOTA_CB_NGSI_VERSION: v2
+      # IOTA_AUTOCAST: true
+      IOTA_MONGO_HOST: mongo
+      IOTA_MONGO_PORT: 27017
+      IOTA_MONGO_DB: orion
+      IOTA_HTTP_PORT: 7896
+      IOTA_PROVIDER_URL: http://iot-agent-json:4041
+      IOTA_DEFAULT_RESOURCE: /iot/json
+    ports:
+      - "4041:4041"
+      - "7896:7896"
+    networks:
+      - fiware-net
+
+  fastapi:
+    hostname: fastapi
+    container_name: fastapi
+    build:
+      context: .
+      dockerfile: dockerfile_fastapi
+    # depends_on:
+    #   - postgis
+    ports:
+      - "8000:8000"
+    networks:
+      - fiware-net
+  
+  nginx_server:
+    hostname: nginx
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: dockerfile_nginx
+    ports:
+      - "89:80"
+    # depends_on:
+      # - fastapi
+    networks:
+      - fiware-net
+
+  timescale:
+    image: timescale/timescaledb-ha:pg16-ts2.17-all
+    container_name: timescale
+    hostname: timescale
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: pamplona
+      PGDATA: /home/postgres/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgis:/home/postgres/pgdata
+    user: "0:0"
+    # restart: unless-stopped
+    networks:
+      -  fiware-net
+
+volumes:
+  mongo_data:
+  
+networks:
+  fiware-net:
+    external: true
+    

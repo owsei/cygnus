@@ -1,0 +1,138 @@
+
+curl -X POST "http://localhost:1026/v2/entities/Sensor001:Rotxapea/attrs" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /iot" \
+  -d '{
+    "services": [{
+      "apikey": "iot-json-key",
+      "cbroker": "http://orion:1026",
+      "entity_type": "Device",
+      "resource": "/iot/json"
+    }]
+  }'
+
+
+
+###
+curl -X POST 'http://localhost:1026/v2/entities/' 
+-H 'Content-Type: application/json' 
+-H "Fiware-Service: pamplona" 
+-H "Fiware-ServicePath: /urbanmobility"
+-d '{
+        "id":"Room2",
+        "type":"Room",
+        "temperature":{
+            "type":"Number",
+            "value":23
+        }
+    }'
+###
+
+
+###Cargar entidad nueva
+curl -X POST 'http://localhost:1026/v2/entities/' 
+-H 'Content-Type: application/json' 
+-H "Fiware-Service: pamplona" 
+-H "Fiware-ServicePath: /urbanmobility"
+-d '{
+    "id": "Vehicle:Bus:TUC:5327GMD",
+    "type": "Vehicle",
+    "vehicleType": {
+        "type": "Text",
+        "value": "Bus"
+    },
+    "category":{
+        "type": "Text",
+        "value": "public"
+    },
+    "vehiclePlateIdentifier":{
+        "type": "Text",
+        "value": "5327GMD"
+    },
+    "serviceStatus": {
+        "type": "Text",
+        "value": "onRoute"
+    },
+    "serviceProvided":{
+        "type": "Text",
+        "value": "urbanTransit"
+    },
+    "areaServed": {
+        "type": "Text",
+        "value": "Centro"
+    },
+    "location": {
+        "type": "geo:json",
+        "value": {
+        "type": "Point",
+        "coordinates": [
+            -1.6376035,
+            42.9556204
+        ]
+        }
+    },
+    "speed": {
+        "type": "Number",
+        "value": 27.4
+    },
+    "heading": {
+        "type":"Number",
+        "value": 180
+    }
+}'
+###
+
+
+
+
+
+curl -X POST 'http://localhost:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Cygnus of changes in IoT Agent",
+    "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "vehicle"
+          }
+        ],
+        "condition": {
+        "attrs": [
+          "TimeInstant"
+        ],
+        "notifyOnMetadataChange": true
+      }
+    },
+    "notification": {
+      "onlyChangedAttrs": false,
+      "attrsFormat": "normalized",
+        "http": {
+          "url": "http://cygnus:5055/notify"
+        },
+        "attrs": [
+          "TimeInstant",
+          "vehicleid",
+          "license_plate",
+          "location",
+          "timedata",
+          "current_stop_sequence",
+          "stop_id",
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "occupancy_percentage"
+        ]
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+###
+
+
+curl -X GET "http://localhost:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:ExportManifest xmlns:ns2="http://www.pentaho.com/schema/">
+    <ExportManifestInformation exportDate="07-11-2025 07:47:21 UTC" exportBy="admin" rootFolder="/home/sc_pamplona_pre/verticals/sql/" manifestVersion="2"/>
+    <ExportManifestEntity path="MCP_buses.cda">
+        <ExportManifestProperty>
+            <EntityMetaData name="MCP_buses.cda" createdDate="2025-10-21T07:53:15.576Z" isFolder="false" path="MCP_buses.cda" isHidden="false" isSchedulable="true" locale="es" title="MCP_buses.cda"/>
+        </ExportManifestProperty>
+        <ExportManifestProperty>
+            <EntityExtraMetaData/>
+        </ExportManifestProperty>
+        <ExportManifestProperty>
+            <EntityAcl>
+                <entriesInheriting>true</entriesInheriting>
+                <owner>sc_pamplona_pre</owner>
+                <ownerType>USER</ownerType>
+            </EntityAcl>
+        </ExportManifestProperty>
+    </ExportManifestEntity>
+</ns2:ExportManifest>

@@ -1,0 +1,16 @@
+token_url = "https://api.mcp.es/token"
+mcp_url = "https://api.mcp.es/TUC/GTFS_RT/gtfs-realtime-vehicle"
+client_id = "B2Gv7dfoB1mwVAJV1okr9Qy3NUUa"
+client_secret = "XTuJdXPDyXoIJQ3GYqCDmWQtAJEa"
+#
+url_orion_token = "https://auth.plataformaciudad.pamplona.es/v3/auth/tokens"
+url_orion_subscription = "https://cb.plataformaciudad.pamplona.es/v2/subscriptions"
+url_orion_entities = "https://cb.plataformaciudad.pamplona.es/v2/entities"
+url_iot_json ='http://iota-json.plataformaciudad.pamplona.es/iot/json?k=jmyry5y4xzo34az90w71byics&i='
+
+# Local
+url_local_orion_entities='http://localhost:1026/v2/entities/'
+url_local_IoTAgent_register='http://localhost:4041/iot/devices'
+url_local_IoTAgent_SetData='http://localhost:7896/iot/json?k=jmyry5y4xzo34az90w71byics&i='
+
+

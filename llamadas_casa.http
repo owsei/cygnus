@@ -1,0 +1,655 @@
+
+@host=localhost
+@orion_port=1026
+
+@host_server=owsei.ddns.net
+
+
+#********************* VERSIONES *****************************
+#ORION VERSION
+###
+GET http://{{host_server}}:{{orion_port}}/version
+
+###
+GET http://{{host_server}}:{{orion_port}}/version
+
+###
+GET http://{{host_server}}:{{orion_port}}/version
+
+###
+GET http://{{host_server}}:{{orion_port}}/v2/types/
+###
+GET http://{{host_server}}:{{orion_port}}/v2/entities
+###
+###SUBSCRIPCIONES EN ORION DE CYGNUS
+###
+curl -X GET http://{{host_server}}:{{orion_port}}/v2/subscriptions/ \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+###
+#VERSION IOT AGENT 
+curl -X GET "http://{{host_server}}:4041/iot/about"
+###
+
+#VERSION IOT AGENT UL
+curl -X GET "http://{{host_server}}:4061/iot/about"
+###
+#CYGNUS VERSION
+GET http://{{host_server}}:5080/v1/version
+###
+
+ curl -sf GET 'http://{{host_server}}:5080/v1/version'
+###
+#********************* ORION *****************************
+#ORION VERSION
+GET http://{{host_server}}:1026/version
+###
+#ENTIDADES DADAS DE ALTA EN ORION
+ ###
+curl -X GET "http://{{host_server}}:1026/v2/entities/?options=keyValues" 
+  -H 'fiware-service: pamplona' 
+  -H 'fiware-servicepath:/urbanmovility ' 
+###
+
+curl -X GET "http://{{host_server}}:1026/v2/entities"
+
+###
+#AÑADIR ENTIDADES A ORION
+curl -X POST 'http://localhost:1026/v2/entities/' 
+-H 'Content-Type: application/json'
+-d '{
+        "id":"Room1",
+        "type":"Room",
+        "temperature":{
+            "type":"Number",
+            "value":25
+        }
+    }'
+###
+
+curl -X POST 'http://localhost:1026/v2/entities/' 
+-H 'Content-Type: application/json' 
+-d '{
+        "id":"Room2",
+        "type":"Room",
+        "temperature":{
+            "type":"Number",
+            "value":23
+        }
+    }'
+###
+
+###BUSCAR ENTIDADES POR ID 
+http://localhost:1026/v2/entities/41?options=keyValues
+
+###
+http://localhost:1026/v2/entities/Room2?options=keyValues
+###
+
+###************************************************************************
+###***********************************************************************
+###                          IoT Agent
+###************************************************************************
+###***********************************************************************
+
+###SABER SI EL SERVICIO ESTA FUNCIONANDO
+curl -X GET 'http://{{host_server}}:4041/iot/about'
+###
+
+###*************************************************************************
+
+###CONFIGURAR DISPOSITIVOS JSON EN ORION IOTs
+curl -X POST "http://{{host_server}}:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmovility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd",
+      "cbroker": "http://{{host_server}}:1026",
+      "entity_type": "vehicle",
+      "resource": "/iot/json"
+    }]
+  }'
+
+###
+
+curl -X POST "http://{{host_server}}:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmovility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd2",
+      "cbroker": "http://orion:1026",
+      "entity_type": "gtfsshape",
+      "resource": "/iot/json"
+    }]
+  }'
+
+### saber grupos de dispositivos registrados
+curl -X GET 'http://{{host_server}}:4041/iot/services' \
+  -H 'Fiware-Service: pamplona' \
+  -H 'Fiware-ServicePath: /urbanmovility'
+
+
+###**********************************************************************
+###REGISTRAR DISPOSITIVOS JSON EN ORION
+curl -X POST "http://{{host_server}}:4041/iot/devices" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmovility" \
+  -d '{
+    "devices": [
+      {
+        "device_id": "Device002",
+        "entity_name": "Vehicle",
+        "entity_type": "Vehicle",
+        "attributes": [
+          { "object_id": "vehicleid", "name": "vehicleid", "type": "Number" },
+          { "object_id": "h", "name": "humidity", "type": "text" }
+        ],
+        "static_attributes": [
+          { "name": "location", "type": "geo:json", "value": "42.818372,-1.644066" }
+        ],
+        "protocol": "IoT-JSON",
+        "apikey": "iot-json-key"
+      }
+    ]
+  }'
+###
+
+###RECIBIR MEDIDAS
+curl -iX POST 'http://{{host_server}}:7896/iot/json?k=jmyry5y4xzo34az90w71byics&i=Device001' \
+  -H 'Content-Type: application/json' \
+  -d '{"t":23,"h":55}'
+###
+curl -iX POST \
+  'http://{{host_server}}:7896/iot/json?k=iot-json-key&i=roomparking001' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /parking"
+  -H 'Content-Type: application/json' \
+  -d '{"t":25.5,"h":55}'
+###
+
+curl -X GET "http://{{host_server}}:1026/v2/entities/?options=keyValues" \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmovility"
+###
+
+
+###*****************************************************************
+###************************************************************************
+###***********************************************************************
+###                          IoT Agent UL
+###************************************************************************
+###***********************************************************************
+###REGISTRAR UN SERVICIO DE IOT-UL AIR QUALITY
+curl -iX POST 'http://localhost:4061/iot/services' \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: pamplona' \
+  -H 'fiware-servicepath: /iots' \
+  -d '{
+ "services": [
+   {
+     "apikey":      "iot-json-key",
+     "cbroker":     "http://orion:1026",
+     "entity_type": "Device",
+     "resource":    "/iot/d"
+   }
+ ]
+}'
+###
+
+curl -iX POST 'http://localhost:4061/iot/services' \
+-H 'fiware-service: pamplonaul' \
+-H 'fiware-servicepath: /' \
+-H 'Content-Type: application/json' \
+--data-raw '{
+    "services": [
+        {
+          "apikey": "4jggokgpepnvsb2uv4s40d59ov",
+          "cbroker": "http://orion:1026",
+          "entity_type": "Device",
+          "resource": "/iot/d"
+        }
+    ]
+}'
+###
+###REGISTRAR UN SENSOR IOT UL
+
+curl -L -X POST 'http://localhost:4061/iot/devices' \
+    -H 'fiware-service: pamplona' \
+    -H 'fiware-servicepath: /' \
+    -H 'Content-Type: application/json' \
+    --data-raw '{
+    "devices": [
+        {
+        "device_id": "temperature007",
+        "entity_name": "temperature007",
+        "entity_type": "Device",
+        "apikey": "4jggokgpepnvsb2uv4s40d59ov",
+        "timezone": "Europe/Berlin",
+        "attributes": [
+            {
+            "object_id": "t",
+            "name": "temperature",
+            "type": "Number"
+            }
+        ]
+        }
+    ]
+    }'
+###
+
+GET "http://iot-agent:7896/iot/d?i=temperature007&k=4jggokgpepnvsb2uv4s40d59ov"
+###
+
+curl -L -X POST 'http://localhost:7897/iot/d?k=4jggokgpepnvsb2uv4s40d59ov&i=temperature007' \
+    -H 'Content-Type: text/plain' \
+    --data-raw 't|24'
+###
+curl -X POST 'http://localhost:4061/iot/devices' \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /" \
+  -d '{
+  "devices": [
+    {
+      "device_id": "AirQuality0001",
+      "entity_name": "AirQuality0001",
+      "entity_type": "AirQuality",
+      "protocol":    "IoTA-UltraLight",
+      "transport":   "HTTP",
+      "attributes": [
+        { "object_id": "t", "name": "temperature", "type": "Integer" },
+        { "object_id": "h", "name": "humidity", "type": "Integer" },
+        { "object_id": "q", "name": "airquality", "type": "Integer" },
+        { "object_id": "l", "name": "location", "type": "geo:json" }
+      ],
+      "static_attributes": [
+        { "name": "temperature", "type": "Integer", "value": 0 },
+        { "name": "humidity", "type": "Integer", "value": 0 },
+        { "name": "airquality", "type": "Integer", "value": 0 },
+        { "name": "location", "type": "Text", "value": "0,0" }
+      ],
+      "apikey": "iot-json-key",
+      "autocreate": true
+    }
+  ]
+}' 
+###
+curl -X POST 'http://localhost:4061/iot/devices' \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /" \
+  -d '{
+  "devices": [
+    {
+      "device_id": "AirQuality0002",
+      "entity_name": "AirQuality0002",
+      "entity_type": "AirQuality",
+      "protocol":    "IoTA-UltraLight",
+      "transport":   "HTTP",
+      "attributes": [
+        { "object_id": "t", "name": "temperature", "type": "Integer" },
+        { "object_id": "h", "name": "humidity", "type": "Integer" },
+        { "object_id": "q", "name": "airquality", "type": "Integer" },
+        { "object_id": "l", "name": "location", "type": "geo:json" }
+      ],
+      "static_attributes": [
+        { "name": "temperature", "type": "Integer", "value": 0 },
+        { "name": "humidity", "type": "Integer", "value": 0 },
+        { "name": "airquality", "type": "Integer", "value": 0 },
+        { "name": "location", "type": "Text", "value": "0,0" }
+      ],
+      "apikey": "iot-json-key"
+    }
+  ]
+}' 
+###
+
+curl -iX POST "http://iot-agent:7896/iot/d?i=Device001&k=iot-json-key"
+###
+###ASIGNAR/CAMBIAR DATOS
+curl -iX POST 'http://localhost:7897/iot/d?k=iot-json-key&i=Device001'
+  -H 'Content-Type:text/plain' 
+  -H "Fiware-Service: pamplona"
+  -H "Fiware-ServicePath: /iots"
+  -d 't|34|h|50'
+###
+
+curl -iX POST 'http://localhost:7896/iot/ul?k=iot-json-key&i=AirQuality0002'
+  -H 'Content-Type:text/plain' \
+  -H "Fiware-Service: iot_ul_service" \
+  -H "Fiware-ServicePath: /iot_ul" \
+  -d 't|23|h|55|q|3|gps|42.813288,-1.648511'
+###
+
+###SABER SI LAS ENTIDADES EN ORION SE CREAN BIEN
+curl -X GET "http://88.13.249.226:1026/v2/entities" \
+  -H "Fiware-Service: iot_ul_service" \
+  -H "Fiware-ServicePath: /iot_ul"
+
+###SABER SI LAS ENTIDADES EN ORION SE CREAN BIEN
+curl -X GET "http://localhost:1026/v2/types" \
+  -H "Fiware-Service: iot_ul_service" \
+  -H "Fiware-ServicePath: /iot_ul"
+###
+###******************* CYGNUS******************************
+
+###CYGNUS VERSION
+http://{{host_server}}:5080/v1/version
+###
+
+###SUBSCRIPCIONES EN ORION DE CYGNUS
+curl -X GET http://{{host_server}}:1026/v2/subscriptions\
+  -H "Fiware-Service: sc_pamplona_pre" \
+  -H "Fiware-ServicePath: /urbanmobility"
+###
+
+curl -X GET http:/{{host_server}}:1026/v2/subscriptions/ \
+  -H "Fiware-Service: pamplona" \
+
+###
+curl -X GET http://{{host_server}}:1026/v2/subscriptions/ \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+###SUBCRIPCION PARA POSTGRES
+
+curl -X POST 'http://localhost:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Cygnus of changes in IoT Agent",
+    "subject": {
+        "entities": [
+          {
+              "id": ".*"
+          }
+        ]
+    },
+    "notification": {
+        "http": {
+          "url": "http://cygnus:5055/notify"
+        }
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+###
+curl -X POST 'http://localhost:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Cygnus of changes in IoT Agent",
+    "subject": {
+        "entities": [
+          {
+              "id": ".*"
+          }
+        ]
+    },
+    "notification": {
+        "httpCustom": {
+          "url": "http://cygnus:5055",
+          "headers": {
+            "fiware-servicepath": "/urbanmobility"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "vehicleid",
+          "license_plate",
+          "location",
+          "timedata",
+          "current_stop_sequence",
+          "stop_id",
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "occupancy_percentage"
+        ]
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+
+
+
+
+
+###
+
+###SUBCRIPCION PARA POSTGRES
+
+curl -X POST 'http://{{host_server}}:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Draco of changes in IoT Agent Timescale2",
+    "subject": {
+        "entities": [
+        {
+            "idPattern": ".*"
+        }
+      ]
+    },
+    "notification": {
+        "http": {
+        "url": "http://draco:5060/notify"
+        }
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+
+###SUBCRIPCION PARA POSTGRES
+
+curl -X POST 'http://localhost:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Cygnus of changes in IoT Agent",
+    "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "vehicle"
+          }
+        ],
+        "condition": {
+        "attrs": [
+          "TimeInstant"
+        ],
+        "notifyOnMetadataChange": true
+      }
+    },
+    "notification": {
+      "onlyChangedAttrs": false,
+      "attrsFormat": "normalized",
+        "http": {
+          "url": "http://cygnus:5055/notify"
+        },
+        "attrs": [
+          "TimeInstant",
+          "vehicleid",
+          "license_plate",
+          "location",
+          "timedata",
+          "current_stop_sequence",
+          "stop_id",
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "occupancy_percentage"
+        ]
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+###
+
+curl -iX POST \
+  'http://localhost:1026/v2/subscriptions' \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: pamplona' \
+  -H 'fiware-servicepath: /urbanmobility' \
+  -d '{
+  "description": "Notify Draco 5060 of all context changes",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*",
+        "type": "gtfsshape"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://cygnus:5055/notify"
+    }
+  },
+  "throttling": 0
+}'
+###
+
+curl -iX POST \
+  'http://localhost:1026/v2/subscriptions' \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: pamplona' \
+  -H 'fiware-servicepath: /iots' \
+  -d '{
+  "description": "Notify nifi of all context changes",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://cygnus:5055/notify"
+    }
+  },
+  "throttling": 0
+}'
+###
+
+###**************************************************************************
+
+curl -X GET http://{{host}}}:1026/v2/subscriptions \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+###
+
+curl -X GET "http://localhost:1026/v2/entities/"
+###
+
+curl -X GET 'http://localhost:4041/iot/about'
+###
+
+http://localhost:1026/v2/entities/raiz:Sensor001?options=keyValues
+###
+http://localhost:1026/v2/entities/?options=keyValues
+###
+###ACTUALIZAR DATOS ENTIDAD 
+curl -iX POST 'http://localhost:1026/v2/entities/room001/attrs' \
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /iots"
+    -d '
+    {
+        "temperature": {"value": 30}
+    }'
+###
+
+curl -X PATCH 'http://localhost:1026/v2/entities/Room1/attrs' \
+-H 'Content-Type: application/json' \
+-d '{
+  "temperature": {
+    "value": 66
+  }
+}'
+###
+
+curl -X PATCH 'http://localhost:1026/v2/entities/Room2/attrs' \
+-H 'Content-Type: application/json' \
+-d '{
+  "temperature": {
+    "value": 44
+  }
+}'
+
+###
+
+###
+GET http://localhost:1026/v2/subscriptions/ HTTP/1.1
+fiware-service: pamplona
+fiware-servicepath: /iots
+###
+
+###
+curl -iX POST \
+  'http://localhost:1026/v2/subscriptions' \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: pamplonaul' \
+  -H 'fiware-servicepath: /' \
+  -d '{
+  "description": "Notify nifi of all context changes",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://localhost:5055/notify"
+    }
+  },
+  "throttling": 0
+}'
+
+
+
+###
+POST http://localhost:5050/notify HTTP/1.1
+Fiware-Service: pamplona
+Fiware-ServicePath: /iots
+Content-Type: application/json
+
+{
+  "data": {
+    "id": "Room1",
+    "type": "Room",
+    "temperature": {
+      "value": 30,
+      "type": "Number"
+    }
+  },
+  "dataFormat": "keyValues",
+  "originatorId": "Room1",
+  "subscriptionId": "5f4e2b0c-3a7d-4b8e-9c3d-6f8a2b0c3a7d"
+}
+
+
+###
+./opt/nifi/nifi-current/drivers/postgresql-42.2.4.jar
+
+
+###
+
+
+
+curl -X GET "http://localhost:81"\ 
+-d '{"mensaje":"Hola mundo"}'
+  

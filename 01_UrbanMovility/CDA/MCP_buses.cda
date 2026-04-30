@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CDADescriptor>
+  <DataSources>
+    <Connection id="pgConnection" type="sql.jdbc">
+      <Driver>org.postgresql.Driver</Driver>
+      <Url>jdbc:postgresql://pro-postgis:5432/sc_pamplona_pre</Url>
+      <User>sc_pamplona_pre_ro</User>
+      <Pass>4MVAHfzv4ZcSn2JSJvDIHPFxS2WGph8C</Pass>
+    </Connection>
+  </DataSources>
+
+  <DataAccess access="public" connection="pgConnection" id="MCP_buses" type="sql">
+    <Name>MCP_buses</Name>
+    <Cache duration="60" enabled="true"/>
+    <Parameters>
+      <Parameter name="start" type="String" default="2025-01-01T00:00:00Z"/>
+      <Parameter name="finish" type="String" default="2025-12-31T23:59:59Z"/>
+    </Parameters>
+      <Query>
+      <![CDATA[
+        SELECT
+          timeinstant, 
+          vehicleid, 
+          license_plate, 
+          location, 
+          timedata
+        FROM
+          sc_pamplona_pre.urbanmobility_vehicle
+        ORDER BY
+          timedata DESC
+      ]]>
+      </Query> 
+  </DataAccess>
+
+  <DataAccess access="public" connection="pgConnection" id="MCP_buses_lastdata" type="sql">
+    <Name>MCP_buses_lastdata</Name>
+    <Cache duration="60" enabled="true"/>
+    <Parameters>
+      
+    </Parameters>
+      <Query>
+      <![CDATA[
+        SELECT
+          timeinstant, 
+          vehicleid, 
+          license_plate, 
+          location, 
+          timedata
+        FROM
+          sc_pamplona_pre.urbanmobility_vehicle_lastdata
+        ORDER BY
+          timedata DESC
+      ]]>
+      </Query> 
+  </DataAccess>
+</CDADescriptor>
+    
+    
+    
+    
+    
+    
+    </Parameters>
+      <Query>
+      <![CDATA[
+        
+      ]]>
+      </Query> 
+  </DataAccess>
+</CDADescriptor>

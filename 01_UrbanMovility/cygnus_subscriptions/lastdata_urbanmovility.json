@@ -1,0 +1,47 @@
+{
+  "id": "690cb99f20fd07705e07e8a5",
+  "description": "UrbanMovility:LASTDATA:vehicle",
+  "status": "active",
+  "subject": {
+    "entities": [
+      {
+        "id": ".*",
+        "isPattern": true,
+        "type": "vehicle"
+      }
+    ],
+    "condition": {
+      "attrs": [],
+      "alterationTypes": [
+        "entityUpdate",
+        "entityCreate",
+        "entityDelete"
+      ],
+      "notifyOnMetadataChange": true
+    }
+  },
+  "notification": {
+    "timesSent": 812,
+    "lastNotification": "2025-11-06T18:36:53.000Z",
+    "attrs": [
+      "TimeInstant",
+      "vehicleid",
+      "license_plate",
+      "location",
+      "timedata",
+      "alterationType"
+    ],
+    "onlyChangedAttrs": false,
+    "attrsFormat": "normalized",
+    "httpCustom": {
+      "url": "http://pro-core-smc-cygnus:5088/notify",
+      "headers": {
+        "fiware-servicepath": "/urbanmobility"
+      }
+    },
+    "lastSuccess": "2025-11-06T18:36:53.000Z",
+    "lastSuccessCode": 200,
+    "covered": false
+  },
+  "extraInfo": 200
+}

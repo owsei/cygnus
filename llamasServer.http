@@ -1,0 +1,295 @@
+
+@host=localhost
+@orion_port=1026
+@host_server=172.30.188.48
+
+@host_name_server=pmplvddock02
+
+#********************* VERSIONES *****************************
+
+curl -X GET http://{{host_server}}:1026/version
+
+###
+curl -X GET http://{{host_server}}:5080/v1/version
+###
+curl -X GET "http://{{host_name_server}}:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+###
+### borrar subscripcion
+curl -X DELETE "http://{{host_server}}:1026/v2/subscriptions/695f6230c4b181fc300b939c"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+
+###
+curl -X GET "http://{{host_server}}:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+###
+
+
+### COSNULTAR GRUPOS DE DISPOSITIVOS YA CONFIGURADOS
+#### HAY QUE CAMBIAR SERVICE Y SERVICEPATH PARA LOS DISTINTOS DISPOSITIVOS
+
+
+curl -X GET "http://{{host_server}}:4041/iot/services" \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+###CONFIGURAR DISPOSITIVOS JSON EN ORION IOTs
+### aprovisionar grupo de dispositivos
+
+###CONFIGURAR DISPOSITIVOS JSON EN ORION IOTs
+
+### entidad tipo vehicle
+curl -X POST "http://{{host_server}}:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmobility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd",
+      "cbroker": "http://{{host_server}}:1026",
+      "entity_type": "vehicle",
+      "resource": "/iot/json"
+    }]
+  }'
+
+###
+
+### entidad tipo gtfsshape
+curl -X POST "http://{{host_server}}:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmobility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd2",
+      "cbroker": "http://orion:1026",
+      "entity_type": "gtfsshape",
+      "resource": "/iot/json"
+    }]
+  }'
+
+
+### saber grupos de dispositivos registrados
+curl -X GET 'http://{{host_server}}:4041/iot/services' \
+  -H 'Fiware-Service: pamplona' \
+  -H 'Fiware-ServicePath: /urbanmobility'
+
+
+
+
+###SUBCRIPCION DE CYGNUS PARA QUE VEA LOS CAMBIOS
+curl -X POST 'http://{{host_server}}:1026/v2/subscriptions/'
+-H 'Content-Type: application/json' 
+-H "Fiware-Service: pamplona" 
+-H "Fiware-ServicePath: /urbanmobility"
+-d '{
+  "description": "Notify Cygnus of all context changes Postgres",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*",
+        "type": "vehicle"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://cygnus:5055/notify"
+    }
+  },
+  "throttling": 0
+}'
+
+#####
+curl -X POST 'http://{{host_server}}:1026/v2/subscriptions/'
+-H 'Content-Type: application/json' 
+-H "Fiware-Service: pamplona" 
+-H "Fiware-ServicePath: /iots"
+-d '{
+  "description": "Notify Draco of all context changes ",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://draco:5050/notify"
+    }
+  },
+  "throttling": 0
+}'
+
+####
+##HAY QUE CREAR LA BASE DE DATOS ANTES DE ESTAS ENTIDADES
+  CREATE TABLE iots_device (
+    recvtimets text NULL,
+    recvtime text NULL,
+    fiwareservicepath text NULL,
+    entityid text NULL,
+    entitytype text NULL,
+    t text NULL,
+    t_md text NULL,
+    h text NULL,
+    h_md text NULL,
+    timeinstant text NULL,
+    timeinstant_md text NULL
+  );
+
+  
+  CREATE TABLE devices (
+	id text null,
+    fechaarrive text NULL,
+    h text null,
+    t text null
+  );
+
+
+  CREATE EXTENSION IF NOT EXISTS timescaledb;
+CREATE EXTENSION IF NOT EXISTS postgis;
+ 
+
+###ENVIAR DATOS AL DISPOSITIVO ULTRALIGHT
+
+curl -L -X POST 'http://172.30.188.48:7897/iot/d?k=iot-json-key&i=sensor001' \
+    -H 'Content-Type: text/plain' \
+    --data-raw 't|34.75|h|66'
+###
+
+curl -L -X POST 'http://172.30.188.48:7897/iot/d?k=iot-json-key&i=sensor002' \
+    -H 'Content-Type: text/plain' \
+    --data-raw 't|32.2|h|70'
+###
+
+
+#SUBCRIPCION DE PERSEO A ORION
+###
+curl -X POST "http://172.30.188.48:1026/v2/subscriptions"
+-H 'Content-Type: application/json' 
+-H 'Fiware-Service: pamplona' 
+-H 'Fiware-ServicePath: /iots' 
+-d '
+  {
+    "description": "Subscription to feed the CEP room",
+    "subject": {
+      "entities": [
+        {
+          "idPattern": ".*"        
+        }
+      ],
+      "condition": {
+        "expression": { "q": "temperature>25" }
+      }
+    },
+    "notification": {
+      "http": {
+        "url": "http://172.30.188.48:9090/notices"
+      },
+      "attrs": [
+        "temperature"
+      ]
+    }
+  }'
+
+
+
+###COSAS NIFI
+###
+{"subscriptionId":"67f3705bc33f3ddafe0bd8ea","data":[{"id":"device:sensor002","type":"device","TimeInstant":{"type":"DateTime","value":"2025-04-07T07:52:40.644Z","metadata":{}},"h":{"type":"Text","value":70,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-07T07:52:40.644Z"}}},"t":{"type":"Text","value":27.2,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-07T07:52:40.644Z"}}}}]}
+{"subscriptionId":"67f3705bc33f3ddafe0bd8ea","data":[{"id":"device:sensor001","type":"device","TimeInstant":{"type":"DateTime","value":"2025-04-08T09:22:31.590Z","metadata":{}},"h":{"type":"Text","value":55,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-08T09:22:31.590Z"}}},"t":{"type":"Text","value":14.3,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-08T09:22:31.590Z"}}}}]}
+{"subscriptionId":"67f7b1b11b0a21a5b109c81c","data":[{"id":"device:sensor001","type":"device","TimeInstant":{"type":"DateTime","value":"2025-04-10T12:04:58.973Z","metadata":{}},"h":{"type":"Text","value":53,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-10T12:04:58.973Z"}}},"t":{"type":"Text","value":13.4,"metadata":{"TimeInstant":{"type":"DateTime","value":"2025-04-10T12:04:58.973Z"}}}}]}
+
+### for nifi JoltTransformJSON
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "data": {
+        "*": {
+          "id": "id",
+          "TimeInstant": {
+            "value": "timestamp"
+          },
+          "t": {
+            "value": "t"
+          },
+          "h": {
+            "value": "h"
+          }
+        }
+      }
+    }
+  }
+]
+
+
+
+{
+	"operation": "shift",
+	"data": {
+			"*":{
+              "id":"id",
+              "TimeInstant":{
+              	"value":"fechaarrive"
+              },
+              "h":{
+              	"value":"h"
+              },
+              "t":{
+              	"value":"t"
+              }
+              
+            }
+		}
+}
+
+
+INSERT INTO pamplona.sensores (id, fechaarrive, h, t) VALUES (?, ?, ?, ?);
+
+{
+	"operation": "shift",
+	"data": {
+			"*":{
+              "id":"id",
+              "TimeInstant":{
+              	"value":"fecha"
+              },
+              "h":{
+              	"value":"h"
+              },
+              "t":{
+              	"value":"t"
+              }
+              
+            }
+		}
+}
+
+
+[
+  {
+    "operation": "default",
+    "spec": {
+      "table": "pamplona.sensores"
+    }
+  },
+  {
+    "operation": "modify-overwrite-beta",
+    "spec": {
+      "sql": "=concat('INSERT INTO ',@(1,table),' (id, fecha, h, t) VALUES (\\'',@(1,id),'\\', \\'',@(1,fecha),'\\', ', ',@(1,h),', ',@(1,t),');')"
+    }
+  },
+  {
+    "operation": "shift",
+    "spec": {
+      "sql": ""
+    }
+  }
+]

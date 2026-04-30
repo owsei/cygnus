@@ -1,0 +1,136 @@
+@host=localhost
+@orion_port=1026
+@host_server=172.30.188.48
+
+
+
+###SABER SI EL SERVICIO ESTA FUNCIONANDO
+curl -X GET 'http://{{host_server}}:4041/iot/about'
+###
+
+curl -X GET 'http://{{host_server}}:4041/iot/services' \
+  -H 'Fiware-Service: pamplona' \
+  -H 'Fiware-ServicePath: /urbanmobility'
+
+
+###CONFIGURAR DISPOSITIVOS JSON EN ORION IOTs
+curl -X POST "http://localhost:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmobility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd",
+      "cbroker": "http://orion:1026",
+      "entity_type": "vehicle",
+      "resource": "/iot/json"
+    }]
+  }'
+
+###
+
+curl -X POST "http://localhost:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmobility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd2",
+      "cbroker": "http://orion:1026",
+      "entity_type": "gtfsshape",
+      "resource": "/iot/json"
+    }]
+  }'
+
+###
+
+
+curl -X GET "http://localhost:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+###SUBCRIPCION PARA POSTGRES VEHICLE
+
+curl -X POST 'http://localhost:1026/v2/subscriptions'\
+  -H 'Content-Type: application/json' \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"\
+    -d '{
+    "description": "Notify Cygnus of changes in IoT Agent",
+    "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "vehicle"
+          }
+        ],
+        "condition": {
+        "attrs": [
+          "TimeInstant"
+        ],
+        "notifyOnMetadataChange": true
+      }
+    },
+    "notification": {
+      "onlyChangedAttrs": false,
+      "attrsFormat": "normalized",
+        "http": {
+          "url": "http://cygnus:5055/notify"
+        },
+        "attrs": [
+          "TimeInstant",
+          "vehicleid",
+          "license_plate",
+          "location",
+          "timedata",
+          "current_stop_sequence",
+          "stop_id",
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "occupancy_percentage"
+        ]
+    },
+    "throttling": 0,
+    "covering":false
+    }'
+###
+
+
+curl -iX POST \
+  'http://localhost:1026/v2/subscriptions' \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: pamplona' \
+  -H 'fiware-servicepath: /urbanmobility' \
+  -d '{
+  "description": "Notify Cygnus 5055 Exterior IP 172.30.188.48",
+  "subject": {
+    "entities": [
+      {
+        "idPattern": ".*",
+        "type": "vehicle"
+      }
+    ]
+  },
+  "notification": {
+    "http": {
+      "url": "http://172.30.188.48:5055/notify"
+    }
+  },
+  "throttling": 0
+}'
+
+
+###OPERACIONES SUBSCRIPCIONES REALIZADAS EN ORION IOT AGENT PARA CYGNUS POSTGRES
+
+### borrar subscripcion
+curl -X DELETE "http://localhost:1026/v2/subscriptions/695f6230c4b181fc300b939c"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+
+###
+curl -X GET "http://localhost:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+###

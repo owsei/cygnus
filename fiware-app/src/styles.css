@@ -1,0 +1,156 @@
+html,
+body{
+  margin: 0;
+  padding: 2rem;
+  /* height: 100%;
+  width: 100%; */
+  overflow: hidden;
+  font-family: 'Montserrat';
+  overflow-y: auto;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+  text-decoration: none;
+}
+a:hover {
+  color: #535bf2;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat';
+}
+
+.buttonBlue {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: 'Montserrat';
+  background-color: #135fec;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  margin: 3px;
+}
+
+.buttonBlue:hover {
+  background-color: #1053d1;
+}
+
+.buttonBlue:focus,
+.buttonBlue:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.buttonRed {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: 'Montserrat';
+  background-color: #8f0e0e;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  margin: 3px;
+}
+
+.buttonRed:hover {
+  background-color: #b30505;
+}
+
+.buttonRed:focus,
+.buttonRed:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.cabeceraPrincipal{
+  display: flex;
+  font-family: 'Montserrat';
+  align-items: center;
+  gap: 10px;
+}
+
+.cuerpoPrincipal{
+  font-family: 'Montserrat';
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+
+.info-fiware{
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-family: 'Montserrat';
+  box-shadow: 0 4px 8px rgba(1, 1, 1, 0.5);
+}
+
+.orionCode{
+  background-color: #272727;
+  color: #39ff14;
+  padding: 15px;
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  margin-top: 20px;
+}
+
+
+.p {
+  font-family: 'Montserrat';
+}
+
+.botonera{
+  display: flex;
+  font-family: 'Montserrat';
+  align-items: center;
+  gap: 10px;
+}
+
+
+.custom-accordion-item .accordion-header button {
+  background-color: #051457; /* morado */
+  color: white;
+}
+
+.custom-accordion-item .accordion-body {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.container {
+  font-family: 'Montserrat';
+}
+
+.container-fluid {
+  font-family: 'Montserrat';
+}
+
+.container-fluid {
+  font-family: 'Montserrat';
+}
+
+#cesiumContainer {
+  width: 50%;
+  height: 50%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.cesium-viewer {
+  width: 69.5%;
+  height: 70%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+

@@ -1,0 +1,119 @@
+
+@host_server = localhost
+
+### Get Orion Context Broker version
+curl -X GET http://{{host_server}}:1026/version
+
+### IOTs Agent version
+curl -X GET "http://{{host_server}}:4041/iot/about"
+###
+
+### Get Cygnus version
+curl -X GET http://{{host_server}}:5080/v1/version
+
+### Get subscriptions in Orion Context Broker
+curl -X GET "http://{{host_server}}:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+### Delete a subscription in Orion Context Broker
+curl -X DELETE "http://{{host_server}}:1026/v2/subscriptions/695f6230c4b181fc300b939c"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+### Get subscriptions in Orion Context Broker after deletion
+curl -X GET "http://{{host_server}}:1026/v2/subscriptions/"\
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"
+
+### Get configured device groups in Orion IOTs Agent
+curl -X GET "http://{{host_server}}:4041/iot/services" \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility"   
+
+
+### Configure a device group for entity type "vehicle" in Orion IOTs Agent
+curl -X POST "http://{{host_server}}:4041/iot/services" \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: pamplona" \
+  -H "fiware-servicepath: /urbanmobility" \
+  -d '{
+    "services": [{
+      "apikey": "123456789abcd",
+      "cbroker": "http://{{host_server}}:1026",
+      "entity_type": "vehicle",
+      "resource": "/iot/json"
+    }]
+  }'
+
+
+###SUBCRIPCION DE CYGNUS PARA QUE VEA LOS CAMBIOS EN ORION CONTEXT BROKER
+curl -X POST "http://{{host_server}}:1026/v2/subscriptions" \
+  -H "Content-Type: application/json" \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility" \
+  -d '{
+        "description": "Notify Cygnus",
+        "subject": {
+          "entities": [
+            { "idPattern": ".*",
+              "type": "vehicle" 
+            }
+          ]
+        },
+        "notification": {
+          "http": {
+            "url": "http://cygnus:5055/notify"
+          },
+          "attrs": []
+        }
+      }'
+
+
+
+### Create a subscription in Orion Context Broker to notify Cygnus of all changes in entities of type "vehicle"
+curl -X POST "http://{{host_server}}:1026/v2/subscriptions" \
+  -H "Content-Type: application/json" \
+  -H "Fiware-Service: pamplona" \
+  -H "Fiware-ServicePath: /urbanmobility" \
+  -d '{
+    "description": "Notify Cygnus of all changes in Orion Context Broker",
+    "subject": {
+        "entities": [
+            {
+                "idPattern": ".*",
+                "isPattern": true,
+                "type": "vehicle"
+            }
+        ],
+        "condition": {
+        "attrs": [],
+        "alterationTypes": [
+            "entityUpdate",
+            "entityCreate",
+            "entityDelete"
+        ],
+        "notifyOnMetadataChange": true
+    }
+    },
+    "notification": {
+        "attrs": [
+            "TimeInstant",
+            "vehicleid",
+            "license_plate",
+            "location",
+            "timedata",
+            "alterationType"
+        ],
+        "onlyChangedAttrs": false,
+        "attrsFormat": "normalized",
+        "httpCustom": {
+            "url": "http://localhost:5055/notify",
+            "headers": {
+                "fiware-servicepath": "/urbanmobility"
+            }
+        },
+        "covered": false
+      
+    }
+  }'

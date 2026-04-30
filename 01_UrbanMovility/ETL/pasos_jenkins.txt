@@ -1,0 +1,69 @@
+# Verifica qué archivo subió el usuario
+echo "Archivo recibido: ${etl_file}"
+
+echo "Descomprimo el fichero etl_file.zip"
+#unzip etl_file.zip -d /home/jenkins/agent/etls/Pamplona/PRE/urbanmobility
+
+echo "Me situo en el directorio etl_project"
+#cd etl_project
+
+echo "Muestro contenido de la carpeta"
+#ls -la 
+echo "Ejecuta la ETL"
+#python3 getBusPositions.py
+
+# Mensaje final
+echo "✅ ETL ejecutada correctamente"
+
+/var/jenkins_home/workspace/Pamplona/PRE/urbanmobility
+
+
+-rw-r--r--+ 1 jenkins jenkins 15136 Nov 27 09:11 BusPosition.py
+-rwxrwxrwx+ 1 jenkins jenkins  5084 Nov 27 09:04 ETL.zip
+-rwxrwxrwx+ 1 jenkins jenkins  1220 Nov 27 09:11 config.py
+drwxrwsrwx+ 2 jenkins jenkins     0 Nov 20 09:25 etl_project
+-rwxrwxrwx+ 1 jenkins jenkins  5084 Nov 27 09:00 etl_urbanmobility.zip
+
+
+
+
+
+if [ -f src/requirements.txt ]; then
+    if [ ! -d venv ]; then
+        python3 -m venv venv
+    fi
+    ./venv/bin/python -m pip install --upgrade pip
+    ./venv/bin/python -m pip install -r src/requirements.txt
+    ./venv/bin/python --version
+ 
+fi
+
+
+. venv/bin/activate
+../venv/bin/python etl.py
+
+
+
+
+echo "Creo entorno virtual e Instalo dependencias"
+if [ -f requirements.txt ]; then
+    if [ ! -d venv ]; then
+    	echo "Creo entorno virtual venv"
+        python -m venv venv
+    fi
+    
+    echo "Actualizo pip"
+    ./venv/bin/python -m pip install --upgrade pip
+    echo "Instalo dependencias"
+    ./venv/bin/python -m pip install -r requirements.txt
+    echo "Version de python"
+    ./venv/bin/python --version
+    echo "Activo el entorno virtual"
+    ./venv/bin/activate
+fi
+
+echo "Me situo en la carpeta del proyecto"
+cd /var/jenkins_home/workspace/Pamplona/PRE/urbanmobility
+
+echo "Ejecuto la ETL"
+python BusPositions.py

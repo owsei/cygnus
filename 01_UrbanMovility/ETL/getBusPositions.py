@@ -1,0 +1,411 @@
+
+import requests
+import time
+import config
+from typing import Optional
+from google.transit import gtfs_realtime_pb2 # type: ignore
+from datetime import datetime
+
+# get
+
+def get_access_token_MCP() -> Optional[str]:
+    try:
+        token_data = {
+            'grant_type': 'client_credentials',
+            'client_id':config.client_id,
+            'client_secret': config.client_secret
+        }
+
+        token_response = requests.post(config.token_url, data=token_data)
+        if token_response.status_code == 200:
+            print("Token obtenido con éxito!")
+            access_token = token_response.json()['access_token']
+            print(f"Access Token: {access_token}")
+            return access_token
+        else:
+            print(f"Error al obtener el token: {token_response.status_code} - {token_response.text}")
+            return token_response
+    except requests.exceptions.RequestException as e:
+        print(f"Error obtaining access token: {e}")
+        return None
+
+def getBusPositions() -> Optional[dict]:
+    access_token = get_access_token_MCP()
+    if not access_token:
+        print(f"Error al obtener el token: {access_token.status_code} - {access_token.text}")
+        return None
+    if access_token:
+        api_url = config.mcp_url
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+    
+        api_response = requests.get(api_url, headers=headers)
+        if api_response.status_code == 200:
+            # print("Posiciones de buses obtenidas con éxito!")
+            feed = gtfs_realtime_pb2.FeedMessage()
+            feed.ParseFromString(api_response.content)
+            # print(f"\nSe han encontrado {len(feed.entity)} vehículos activos.")
+
+            vehiclePositions = []
+            for entity in feed.entity:
+                if entity.HasField('vehicle'):
+                    vehiclePosition={
+                        "id": entity.vehicle.vehicle.id,
+                        "latitude": entity.vehicle.position.latitude,
+                        "longitude": entity.vehicle.position.longitude,
+                        "timestamp": datetime.fromtimestamp(entity.vehicle.timestamp).isoformat(),
+                        "license_plate": entity.vehicle.vehicle.license_plate,
+                        "current_stop_sequence": entity.vehicle.current_stop_sequence,
+                        "stop_id": entity.vehicle.stop_id,
+                        "route_id": entity.vehicle.trip.route_id,
+                        "trip_id": entity.vehicle.trip.trip_id,
+                        "direction_id": entity.vehicle.trip.direction_id,
+                        "occupancy_percentage": entity.vehicle.occupancy_status,
+                    }
+                    vehiclePositions.append(vehiclePosition)
+
+            return vehiclePositions
+
+        else:
+            print(f"Error al obtener las posiciones de los buses: {api_response.status_code} - {api_response.text}")
+            return None
+
+def getOrionToken(servicePath) -> Optional[str]:
+    try:
+    # Placeholder function to obtain Orion token
+        headerOrion = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        payload = {
+            "auth": {
+                "identity": {
+                "methods": [
+                    "password"
+                ],
+                "password": {
+                    "user": {
+                    "domain": {
+                        "name": "sc_pamplona_pre"
+                    },
+                    "name": config.userPlataforma,
+                    "password": config.passPlataforma
+                    }
+                }
+                },
+                "scope": {
+                    "project": {
+                        "domain": {
+                        "name": "sc_pamplona_pre"
+                        },
+                        "name": servicePath
+                    }
+                }
+            }
+        }
+
+        token_response = requests.post(url=config.url_orion_token, headers=headerOrion, json=payload,)
+        print("Código:", token_response.status_code)
+        print("Respuesta:", token_response.json())
+        
+        print("Cabeceras de respuesta:")
+        for clave, valor in token_response.headers.items():
+            print(f"{clave}: {valor}")
+        
+        tokenOrion=token_response.headers["x-subject-token"]
+        print("Token Orion obtenido:", tokenOrion)
+        return tokenOrion
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Error obtaining Orion token: {e}")
+        return None
+
+def getOrionSubscriptionPlataforma():
+    tokenOrion=getOrionToken()
+
+    headerOrion = {
+        'Fiware-Service': 'sc_pamplona_pre',
+        'Fiware-ServicePath': '/urbanmobility',
+        'X-Auth-Token': tokenOrion,
+    }
+    print("Header Orion:", headerOrion)
+
+    try:
+        response=requests.get(config.url_orion_subscription, headers=headerOrion)
+        print("Respuesta:", response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"Error obtaining Orion entities: {e}")
+
+# SETS
+
+
+def setOrionSubscriptionPlataforma():
+    tokenOrion=getOrionToken()
+
+    headerOrion = {
+        'Fiware-Service': 'sc_pamplona_pre',
+        'Fiware-ServicePath': '/urbanmobility',
+        'X-Auth-Token': tokenOrion,
+    }
+    print("Header Orion:", headerOrion)
+
+    payload={
+            "description": "UrbanMobility:HISTORIC:vehicle_2",
+            "subject": {
+                "entities": [
+                {
+                    "idPattern": ".*"
+                }
+                ]
+            },
+            "notification": {
+                "http": {
+                "url": "http://pro-core-smc-cygnus:5086/notify"
+                }
+            },
+            "throttling": 0,
+            "covering":"false"
+        }
+    print("Payload:", payload)
+    try:
+        response=requests.post(config.url_orion_subscription, headers=headerOrion,json=payload)
+        print("Respuesta:", response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating Orion subscription: {e}")
+
+def setIOTBusPositionsOrionPlataforma():
+    # Placeholder function to process or store bus positions
+    vehiclePositions=getBusPositions()
+    print("Vehículos obtenidos:", len(vehiclePositions))
+    
+    tokenOrion=getOrionToken("/urbanmobility")
+
+    if not tokenOrion:
+        print("No se pudo obtener el token de Orion.")
+        return
+    
+    headerOrion = {
+        'Fiware-Service': 'sc_pamplona_pre',
+        'Fiware-ServicePath': '/urbanmobility',
+        'X-Auth-Token': tokenOrion,
+    }
+    print("Header Orion:", headerOrion)
+
+    print("Procesando posiciones de vehículos en Orion...")
+    for vehicle in vehiclePositions:
+        # print(vehicle)
+        vec={
+                "id": vehicle["id"],
+                "type": "vehicle",
+                "vehicleid":vehicle["id"],
+                "license_plate":vehicle["license_plate"],
+                "location": {
+                    "type": "Point",
+                    "coordinates":[vehicle["longitude"], vehicle["latitude"]]
+                },
+                "timedata":vehicle["timestamp"],
+                "current_stop_sequence":vehicle["current_stop_sequence"],
+                "stop_id":vehicle["stop_id"],
+                "route_id":vehicle["route_id"],
+                "trip_id":vehicle["trip_id"],
+                "direction_id":vehicle["direction_id"],
+                "occupancy_percentage":vehicle["occupancy_percentage"]
+            }
+
+        try:
+            requests.post(config.url_iot_json_plataforma_vehicles + vehicle["id"], headers=headerOrion,json=vec)
+            print("Entidad creada:", vec)
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending vehicle data to Orion: {e}")
+
+def setIOTBusPositionsOrionLocal():
+    # Placeholder function to process or store bus positions
+    vehiclePositions=getBusPositions()
+    print("Vehículos obtenidos:", len(vehiclePositions))
+
+    headerOrion = {
+        'Fiware-Service': 'pamplona',
+        'Fiware-ServicePath': '/urbanmobility',
+    }
+    print("Header Orion:", headerOrion)
+
+    print("Procesando posiciones de vehículos en Orion...")
+    for vehicle in vehiclePositions:
+        # print(vehicle)
+        vec={
+                "id": vehicle["id"],
+                "type": "vehicle",
+                "vehicleid":vehicle["id"],
+                "license_plate":vehicle["license_plate"],
+                "location": {
+                    "type": "Point",
+                    "coordinates":[vehicle["longitude"], vehicle["latitude"]]
+                },
+                "timedata":vehicle["timestamp"],
+                "current_stop_sequence":vehicle["current_stop_sequence"],
+                "stop_id":vehicle["stop_id"],
+                "route_id":vehicle["route_id"],
+                "trip_id":vehicle["trip_id"],
+                "direction_id":vehicle["direction_id"],
+                "occupancy_percentage":vehicle["occupancy_percentage"]
+            }
+
+        try:
+            requests.post(config.url_local_IoTAgent_SetData + vehicle["id"], headers=headerOrion,json=vec)
+            print("Entidad creada:", vec)
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending vehicle data to Orion: {e}")
+
+def setIOTBusPositionsOrionMICASA():
+    # Placeholder function to process or store bus positions
+    vehiclePositions=getBusPositions()
+    print("Vehículos obtenidos:", len(vehiclePositions))
+
+    headerOrion = {
+        'Fiware-Service': 'pamplona',
+        'Fiware-ServicePath': '/urbanmobility',
+    }
+    print("Header Orion:", headerOrion)
+
+    print("Procesando posiciones de vehículos en Orion...")
+    nvehicles=len(vehiclePositions)
+    contador=0
+    for vehicle in vehiclePositions:
+        # print(vehicle)
+        vec={
+                "id": vehicle["id"],
+                "type": "vehicle",
+                "vehicleid":vehicle["id"],
+                "license_plate":vehicle["license_plate"],
+                "location": {
+                    "type": "Point",
+                    "coordinates":[vehicle["longitude"], vehicle["latitude"]]
+                },
+                "timedata":vehicle["timestamp"],
+                "current_stop_sequence":vehicle["current_stop_sequence"],
+                "stop_id":vehicle["stop_id"],
+                "route_id":vehicle["route_id"],
+                "trip_id":vehicle["trip_id"],
+                "direction_id":vehicle["direction_id"],
+                "occupancy_percentage":vehicle["occupancy_percentage"]
+            }
+
+        try:
+            requests.post(config.url_iot_json_vehicle_CASA +vehicle["id"], headers=headerOrion,json=vec)
+            # if (vehiclePositions.index(vehicle) % 10) == 0:
+            #     time.sleep(30)
+            print("Entidad creada:", vec)
+            contador+=1
+            print(f"Progreso: {contador}/{nvehicles} vehículos procesados.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending vehicle data to Orion: {e}")
+
+def setBusPositionsOrionLocal():
+    # Placeholder function to process or store bus positions
+    vehiclePositions=getBusPositions()
+    print("Vehículos obtenidos:", len(vehiclePositions))
+    print(vehiclePositions[0]['id'])
+
+    headerOrion = {
+        'Content-Type': 'application/json',
+        'Fiware-Service': 'pamplona',
+        'Fiware-ServicePath': '/urbanmobility',
+    }
+    print("Header Orion:", headerOrion)
+
+    print("Procesando posiciones de vehículos en Orion...")
+    for vehicle in vehiclePositions:
+        vec={
+                "id": vehicle["id"],
+                "type": "Vehicle",
+                "vehicle_id": {"type":"text","value":vehicle["id"]},
+                "license_plate":{"type":"text","value":vehicle["license_plate"]},
+                "location": {
+                    "type": "geo:json",
+                    "value":{
+                        "coordinates":[vehicle["longitude"], vehicle["latitude"]],
+                        "type":"Point"
+                    }
+                },
+                "timedata":{"type":"DateTime","value":vehicle["timestamp"]}
+            }
+
+        print("Entidad a enviar a Orion:", vec)
+        # devices.append(vec)
+        try:
+            requests.post(config.url_local_IoTAgent_SetData, headers=headerOrion,json=vec)
+            print("Entidad creada:", vec)
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending vehicle data to Orion: {e}")
+    print("Proceso completado.")
+
+def getOrionEntitiesPlataforma():
+    tokenOrion=getOrionToken("/urbanmobility")
+
+    headerOrion = {
+        'Fiware-Service': 'sc_pamplona_pre',
+        'Fiware-ServicePath': '/urbanmobility',
+        'X-Auth-Token': tokenOrion,
+    }
+    print("Header Orion:", headerOrion)
+
+    try:
+        response=requests.get(config.url_orion_entities, headers=headerOrion)
+        print("Respuesta:", response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"Error obtaining Orion entities: {e}")
+
+def setOrionBusShapeLocal():
+
+    # tokenOrion=getOrionToken("/urbanmobility")
+    headerOrion = {
+        'Fiware-Service': 'pamplona',
+        'Fiware-ServicePath': '/urbanmobility',
+    }
+    print("Header Orion:", headerOrion)
+
+    print("Procesando posiciones de Shapes en Orion...")
+
+    shape_counter = 0
+    shapeFile = open('C:\\Proyectos\\KnowledgeTransfer\\2. Datos Mancomunidad\\Mancomunidad\\GTFS\\txt\\shapes.txt', 'r')
+    shapeFileLines = shapeFile.readlines()
+    # shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence
+    for line in shapeFileLines:
+        if shape_counter > 0:
+            parts = line.strip().split(',')
+            shape={
+                "id": parts[0] + "_" + parts[3],
+                "type": "GTFSShape",
+                "location": {
+                    "type": "Point",
+                    "coordinates":[parts[1], parts[2]]
+                },
+                "sequence": int(parts[3])
+            }
+            try:
+                requests.post('http://localhost:7896/iot/json?k=jmyry5y4xzo34az90w71byics&i='+shape["id"], headers=headerOrion,json=shape)
+                print("Entidad creada:", shape)
+            except requests.exceptions.RequestException as e:
+                print(f"Error sending vehicle data to Orion: {e}")
+        shape_counter += 1
+    
+
+if __name__ == "__main__":
+    print("Iniciando proceso de actualización de posiciones de autobuses...")
+    # setBusPositionsOrionLocal()
+    # getOrionEntitiesPlataforma()
+    setIOTBusPositionsOrionLocal()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+    # setIOTBusPositionsOrionMICASA()
+    # setIOTBusPositionsOrionPlataforma()
+    # getOrionSubscriptionPlataforma()
+    # setOrionSubscriptionPlataforma()
+    # setOrionBusShapeLocal()
+    print("Proceso de actualización de posiciones de autobuses completado.")
+
+
+
+
+
+

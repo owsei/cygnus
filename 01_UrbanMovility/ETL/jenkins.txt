@@ -1,0 +1,30 @@
+echo 'INICIO DE LA EJECUCION'
+echo "Usuario actual: "
+whoami
+echo "Workspace actual: $WORKSPACE"
+
+# Limpia el workspace anterior (opcional)
+#rm -rf # borro todo lo de la carpeta raiz
+rm -rf etl_project #borro la carpeta de trabajo
+mkdir etl_project
+
+# Verifica qué archivo subió el usuario
+echo "Archivo recibido: ${etl_file}"
+
+echo "Descomprimo el fichero etl_file.zip"
+unzip etl_file.zip -d etl_project
+
+echo "Me situo en el directorio etl_project"
+cd etl_project
+
+echo "Muestro contenido de la carpeta"
+ls -la 
+echo "Ejecuta la ETL"
+python3 getBusPositions.py
+
+# Mensaje final
+echo "✅ ETL ejecutada correctamente"
+
+
+******
+mkdir -p "/home/jenkins/agent/etls/Pamplona/PRE/vehicle"

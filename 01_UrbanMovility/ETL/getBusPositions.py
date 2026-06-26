@@ -1,7 +1,7 @@
 
 import requests
 import time
-import config
+import config.config as config
 from typing import Optional
 from google.transit import gtfs_realtime_pb2 # type: ignore
 from datetime import datetime
@@ -139,8 +139,6 @@ def getOrionSubscriptionPlataforma():
         print(f"Error obtaining Orion entities: {e}")
 
 # SETS
-
-
 def setOrionSubscriptionPlataforma():
     tokenOrion=getOrionToken()
 
@@ -251,7 +249,6 @@ def setIOTBusPositionsOrionLocal():
                 "direction_id":vehicle["direction_id"],
                 "occupancy_percentage":vehicle["occupancy_percentage"]
             }
-
         try:
             requests.post(config.url_local_IoTAgent_SetData + vehicle["id"], headers=headerOrion,json=vec)
             print("Entidad creada:", vec)

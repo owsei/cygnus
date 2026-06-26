@@ -1,6 +1,6 @@
 import requests
 import time
-import config
+import ETL.config.config as config
 import json
 from typing import Optional
 from google.transit import gtfs_realtime_pb2 # type: ignore
@@ -136,6 +136,7 @@ def setLinesMIA()->Optional[str]:
             except requests.exceptions.RequestException as e:
                 print(f"Error sending vehicle data to Orion: {e}")
         time.sleep(30)
+
 
 def setLines()->Optional[str]:
     

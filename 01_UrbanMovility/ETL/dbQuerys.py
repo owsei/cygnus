@@ -2,7 +2,7 @@ import psycopg2
 from typing import Optional
 from fastapi import HTTPException
 from fastapi import FastAPI 
-import dbConfig
+import ETL.config.dbConfig as dbConfig
 
 
 def select(query: str) -> Optional[tuple]:

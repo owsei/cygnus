@@ -1,6 +1,6 @@
 
 import requests
-import config
+import ETL.config.config as config
 from typing import Optional
 from google.transit import gtfs_realtime_pb2 # type: ignore
 from datetime import datetime
@@ -97,7 +97,7 @@ def getOrionToken(servicePath) -> Optional[str]:
                 "scope": {
                     "project": {
                         "domain": {
-                        "name": "sc_pamplona_pre"
+                        "name": config.service_plataforma
                         },
                         "name": servicePath
                     }
@@ -130,7 +130,7 @@ def setBusPositions():
     tokenOrion=getOrionToken("/urbanmobility")
 
     headerOrion = {
-        'Fiware-Service': 'sc_pamplona_pre',
+        'Fiware-Service': config.service_plataforma,
         'Fiware-ServicePath': '/urbanmobility',
         'X-Auth-Token': tokenOrion,
     }
@@ -158,7 +158,7 @@ def setBusPositions():
             }
 
         try:
-            requests.post(config.url_local_orion_entities + vehicle["id"], headers=headerOrion,json=vec)
+            requests.post(config.url_iot_json_plataforma_vehicles + vehicle["id"], headers=headerOrion,json=vec)
             print("Entidad creada:", vec)
         except requests.exceptions.RequestException as e:
             print(f"Error sending vehicle data to Orion: {e}")

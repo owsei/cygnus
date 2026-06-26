@@ -1,19 +1,21 @@
 import os
+import certifi
 import requests
 from google.transit import gtfs_realtime_pb2 # type: ignore
 from datetime import datetime
 
-print("ETL process started.")
 
+access_token = None
 # obtengo token de MCP
 try:
     token_data = {
         'grant_type': 'client_credentials',
-        'client_id': os.getenv("Urbanmobility_MCP_client_id"),
-        'client_secret': os.getenv("Urbanmobility_MCP_client_secret")
+        'client_id': "B2Gv7dfoB1mwVAJV1okr9Qy3NUUa",
+        'client_secret':"XTuJdXPDyXoIJQ3GYqCDmWQtAJEa"
     }
 
-    token_response = requests.post("https://api.mcp.es/token", data=token_data)
+    token_response = requests.post("https://api.mcp.es/token", data=token_data,verify=False)
+    print("Token response:", token_response)
     if token_response.status_code == 200:
         print("Token obtenido con éxito!")
         access_token = token_response.json()['access_token']
@@ -25,15 +27,15 @@ except requests.exceptions.RequestException as e:
 
 # Aquí iría el resto del proceso ETL utilizando el token obtenido
 
-if not access_token:
-    print(f"Error al obtener el token: {access_token.status_code} - {access_token.text}")
+
 if access_token:
+    print("ETL process started.")
     api_url = "https://api.mcp.es/TUC/GTFS_RT/gtfs-realtime-vehicle"
     headers = {
         'Authorization': f'Bearer {access_token}'
     }
 
-    api_response = requests.get(api_url, headers=headers)
+    api_response = requests.get(api_url, headers=headers, verify=False)
     if api_response.status_code == 200:
         # print("Posiciones de buses obtenidas con éxito!")
         feed = gtfs_realtime_pb2.FeedMessage()
@@ -60,40 +62,42 @@ if access_token:
     else:
         print(f"Error al obtener las posiciones de los buses: {api_response.status_code} - {api_response.text}")
 
-print("Vehículos obtenidos:", len(vehiclePositions))
+    print("Vehículos obtenidos:", len(vehiclePositions))
 
-##############################
-headerOrion = {
-    'Fiware-Service': 'sc_pamplona_pro',
-    'Fiware-ServicePath': '/urbanmobility',
-}
-print("Header Orion:", headerOrion)
+    ##############################
+    headerOrion = {
+        'Fiware-Service': 'sc_pamplona_pro',
+        'Fiware-ServicePath': '/urbanmobility',
+    }
+    print("Header Orion:", headerOrion)
 
-print("Procesando posiciones de vehículos en Orion...")
-for vehicle in vehiclePositions:
-    # print(vehicle)
-    vec={
-            "id": vehicle["id"],
-            "type": "vehicle",
-            "vehicleid":vehicle["id"],
-            "license_plate":vehicle["license_plate"],
-            "location": {
-                "type": "Point",
-                "coordinates":[vehicle["longitude"], vehicle["latitude"]]
-            },
-            "timedata":vehicle["timestamp"],
-            "current_stop_sequence":vehicle["current_stop_sequence"],
-            "stop_id":vehicle["stop_id"],
-            "route_id":vehicle["route_id"],
-            "trip_id":vehicle["trip_id"],
-            "direction_id":vehicle["direction_id"],
-            "occupancy_percentage":vehicle["occupancy_percentage"]
-        }
+    print("Procesando posiciones de vehículos en Orion...")
+    for vehicle in vehiclePositions:
+        # print(vehicle)
+        vec={
+                "id": vehicle["id"],
+                "type": "vehicle",
+                "vehicleid":vehicle["id"],
+                "license_plate":vehicle["license_plate"],
+                "location": {
+                    "type": "Point",
+                    "coordinates":[vehicle["longitude"], vehicle["latitude"]]
+                },
+                "timedata":vehicle["timestamp"],
+                "current_stop_sequence":vehicle["current_stop_sequence"],
+                "stop_id":vehicle["stop_id"],
+                "route_id":vehicle["route_id"],
+                "trip_id":vehicle["trip_id"],
+                "direction_id":vehicle["direction_id"],
+                "occupancy_percentage":vehicle["occupancy_percentage"]
+            }
 
-    try:
-        requests.post("http://pro-core-smc-iota-json.pro:7897/iot/json?k=" + os.getenv("Urbanmobility_IoTAgent_APIkey_PRO") + "&i=" + vehicle["id"], headers=headerOrion,json=vec)
-        print("Entidad creada:", vec)
-    except requests.exceptions.RequestException as e:
-        print(f"Error sending vehicle data to Orion: {e}")
+        try:
+            requests.post("http://pro-core-smc-iota-json.pro:7897/iot/json?k=e73bsnoo3oo3uwn8wvyi70yfg&i=" + vehicle["id"], headers=headerOrion,json=vec)
+            print("Entidad creada:", vec)
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending vehicle data to Orion: {e}")
 
-print("ETL process completed.")
+    print("ETL process completed.")
+else:
+    print("ETL process aborted due to failure in obtaining access token.")
